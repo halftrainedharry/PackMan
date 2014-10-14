@@ -151,9 +151,9 @@ TP.combo.Snippet = function(config) {
         ,editable: false
         ,allowBlank: false
         ,listWidth: 300
-        ,url: MODx.config.connectors_url+'element/snippet.php'
+        ,url: MODx.config.connector_url ? MODx.config.connector_url : MODx.config.connectors_url+'element/snippet.php'
         ,baseParams: {
-            action: 'getList'
+            action: MODx.config.connector_url ? 'element/snippet/getList' : 'getList'
         }
     });
     TP.combo.Snippet.superclass.constructor.call(this,config);

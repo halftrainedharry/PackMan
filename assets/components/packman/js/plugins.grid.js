@@ -113,9 +113,9 @@ TP.combo.Plugin = function(config) {
         ,editable: false
         ,allowBlank: false
         ,listWidth: 300
-        ,url: MODx.config.connectors_url+'element/plugin.php'
+        ,url: MODx.config.connector_url ? MODx.config.connector_url : MODx.config.connectors_url+'element/plugin.php'
         ,baseParams: {
-            action: 'getList'
+            action: MODx.config.connector_url ? 'element/plugin/getList' : 'getList'
         }
     });
     TP.combo.Plugin.superclass.constructor.call(this,config);

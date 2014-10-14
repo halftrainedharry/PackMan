@@ -101,9 +101,9 @@ TP.combo.TV = function(config) {
         ,editable: false
         ,allowBlank: false
         ,listWidth: 300
-        ,url: MODx.config.connectors_url+'element/tv.php'
+        ,url: MODx.config.connector_url ? MODx.config.connector_url : MODx.config.connectors_url+'element/tv.php'
         ,baseParams: {
-            action: 'getList'
+            action: MODx.config.connector_url ? 'element/tv/getList' : 'getList'
         }
     });
     TP.combo.TV.superclass.constructor.call(this,config);

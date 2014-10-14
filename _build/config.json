@@ -1,0 +1,21 @@
+{
+    "name": "PackMan",
+    "lowCaseName": "packman",
+    "description": "A Transport Package creation tool for MODX Revolution.",
+    "author": "Shaun McCormick",
+    "version": "1.2.0",
+    "package":{
+        "actions": [{
+            "id": 1,
+            "controller": "index"
+        }],
+        "menus": [{
+            "text": "packman",
+            "description": "packman.menu_desc",
+            "action": 1
+        }]
+    },
+    "database": {
+        "tables": ["pacProfile"]
+    }
+}

@@ -8,6 +8,7 @@ TP.panel.Home = function(config) {
         }
         ,border: false
         ,baseCls: 'modx-formpanel'
+        ,cls: 'container'
         ,fileUpload: true
         ,items: [{
             html: '<h2>'+_('packman')+'</h2>'

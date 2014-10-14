@@ -1,5 +1,7 @@
 Changelog for PackMan
 
+- Added 2.3 compatibility
+
 PackMan 1.2.0
 ====================================
 - sqlsrv support

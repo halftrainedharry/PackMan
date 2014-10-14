@@ -135,9 +135,9 @@ TP.combo.Template = function(config) {
         ,editable: false
         ,allowBlank: false
         ,listWidth: 300
-        ,url: MODx.config.connectors_url+'element/template.php'
+        ,url: MODx.config.connector_url ? MODx.config.connector_url : MODx.config.connectors_url+'element/template.php'
         ,baseParams: {
-            action: 'getList'
+            action: MODx.config.connector_url ? 'element/template//getList' : 'getList'
         }
     });
     TP.combo.Template.superclass.constructor.call(this,config);
