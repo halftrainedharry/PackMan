@@ -4,3 +4,6 @@ config.core.php
 .idea
 nbproject
 .svn
+_packages/*.*
+!_packages/.gitignore
+!_packages/*.zip

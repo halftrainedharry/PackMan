@@ -1,5 +1,7 @@
 Changelog for PackMan
 
+PackMan 1.2.1
+====================================
 - Added 2.3 compatibility
 
 PackMan 1.2.0
