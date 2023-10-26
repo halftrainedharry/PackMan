@@ -26,9 +26,13 @@
  *
  * @package packman
  */
+namespace PackMan;
+
+use MODX\Revolution\modX;
+
 class PackMan {
     public $modx = null;
-    public $config = array();
+    public $config = [];
 
     /**
      * Default constructor for PackMan
@@ -38,49 +42,28 @@ class PackMan {
      * @param array $config (optional) Configuration properties.
      * @return packman
      */
-    function __construct(modX &$modx,array $config = array()) {
+    function __construct(modX &$modx,array $config = []) {
         $this->modx =& $modx;
 
-        $corePath = $modx->getOption('packman.core_path',null,$modx->getOption('core_path').'components/packman/');
-        $assetsUrl = $modx->getOption('packman.assets_url',null,$modx->getOption('assets_url').'components/packman/');
+        $corePath = $modx->getOption('packman.core_path', null, $modx->getOption('core_path') . 'components/packman/');
+        $assetsUrl = $modx->getOption('packman.assets_url', null, $modx->getOption('assets_url') . 'components/packman/');
 
-        $this->config = array_merge(array(
-            'corePath' => $corePath,
-            'modelPath' => $corePath.'model/',
-            'processorsPath' => $corePath.'processors/',
-            'controllersPath' => $corePath.'controllers/',
-            'includesPath' => $corePath.'includes/',
+        $this->config = array_merge(
+            [
+                'corePath' => $corePath,
+                'srcPath'   => $corePath . 'src/',
+                'modelPath' => $corePath . 'src/Model/',
+                'processorsPath' => $corePath . 'src/Processors/',
+                'controllersPath' => $corePath . 'controllers/',
+                'includesPath' => $corePath . 'includes/',
 
-            'baseUrl' => $assetsUrl,
-            'cssUrl' => $assetsUrl.'css/',
-            'jsUrl' => $assetsUrl.'js/',
-            'connectorUrl' => $assetsUrl.'connector.php',
-        ),$config);
+                'baseUrl' => $assetsUrl,
+                'cssUrl' => $assetsUrl . 'css/',
+                'jsUrl' => $assetsUrl . 'js/'
+            ],
+            $config
+        );
 
-        $this->modx->addPackage('packman',$this->config['modelPath']);
         $this->modx->lexicon->load('packman:default');
-    }
-
-    /**
-     * Runs the PackMan manager pages
-     *
-     * @access public
-     * @return string The output HTML
-     */
-    public function initialize() {
-        $modx =& $this->modx;
-        $tp =& $this;
-        $viewHeader = include $this->config['controllersPath'].'mgr/header.php';
-
-        $this->modx->regClientCSS($this->config['cssUrl'].'mgr.css');
-
-        $f = $this->config['controllersPath'].'mgr/home.php';
-        if (file_exists($f)) {
-            $viewOutput = include $f;
-        } else {
-            $viewOutput = 'Action not found: '.$f;
-        }
-
-        return $viewHeader.$viewOutput;
     }
 }
