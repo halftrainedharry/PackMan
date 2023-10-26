@@ -1,0 +1,16 @@
+name: PackMan
+lowCaseName: packman
+namespace: PackMan
+description: A Transport Package creation tool for MODX Revolution.
+author: Shaun McCormick
+version: 2.0.0-alpha
+menus:
+  - text: packman
+    description: packman.menu_desc
+    action: home
+database:
+  tables:
+    - "\\PackMan\\Model\\pacProfile"
+build:
+  requires:
+      modx: '>=3.0.0-alpha'
