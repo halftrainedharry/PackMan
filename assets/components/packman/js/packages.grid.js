@@ -3,7 +3,7 @@ TP.grid.Packages = function(config) {
     config = config || {};
     Ext.applyIf(config,{
         id: 'tp-grid-packages'
-        ,url: TP.config.connector_url
+        ,url: MODx.config.connector_url
         ,baseParams: {
             action: 'package/getList'
         }
@@ -38,7 +38,7 @@ Ext.extend(TP.grid.Packages,TP.grid.LocalGrid,{
     }
     ,addPackage: function(btn,e) {
         var r = {};
-        
+
         if (!this.windows.addPackage) {
             this.windows.addPackage = MODx.load({
                 xtype: 'tp-window-package-add'

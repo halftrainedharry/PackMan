@@ -2,9 +2,9 @@ TP.panel.Home = function(config) {
     config = config || {};
     Ext.apply(config,{
         id: 'tp-panel-home'
-        ,url: TP.config.connector_url
+        ,url: MODx.config.connector_url
         ,baseParams: {
-            action: 'build'
+            action: 'PackMan\\Processors\\Build'
         }
         ,border: false
         ,baseCls: 'modx-formpanel'
@@ -166,8 +166,8 @@ Ext.extend(TP.panel.Home,MODx.FormPanel,{
             Ext.getCmp('tp-grid-plugins').getStore().commitChanges();
             Ext.getCmp('tp-grid-packages').getStore().commitChanges();
             Ext.getCmp('tp-grid-directories').getStore().commitChanges();
-            
-            location.href = TP.config.connector_url+'?action=build&download='+name+'&HTTP_MODAUTH='+MODx.siteId;
+
+            location.href = MODx.config.connector_url+'?action=PackMan\\Processors\\Build&download='+name+'&HTTP_MODAUTH='+MODx.siteId;
         }
     }
 });

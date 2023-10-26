@@ -3,7 +3,7 @@ TP.grid.Plugins = function(config) {
     config = config || {};
     Ext.applyIf(config,{
         id: 'tp-grid-plugins'
-        ,url: TP.config.connector_url
+        ,url: MODx.config.connector_url
         ,baseParams: {
             action: 'plugin/getList'
             ,template: config.template
@@ -39,7 +39,7 @@ Ext.extend(TP.grid.Plugins,TP.grid.LocalGrid,{
     }
     ,addPlugin: function(btn,e) {
         var r = {};
-        
+
         if (!this.windows.addPlugin) {
             this.windows.addPlugin = MODx.load({
                 xtype: 'tp-window-plugin-add'
@@ -75,6 +75,7 @@ TP.window.AddPlugin = function(config) {
             ,id: 'tp-'+this.ident+'-plugin'
             ,allowBlank: false
             ,pageSize: 20
+            ,anchor: '100%'
         }]
     });
     TP.window.AddPlugin.superclass.constructor.call(this,config);
@@ -113,9 +114,9 @@ TP.combo.Plugin = function(config) {
         ,editable: false
         ,allowBlank: false
         ,listWidth: 300
-        ,url: MODx.config.connector_url ? MODx.config.connector_url : MODx.config.connectors_url+'element/plugin.php'
+        ,url: MODx.config.connector_url
         ,baseParams: {
-            action: MODx.config.connector_url ? 'element/plugin/getList' : 'getList'
+            action: 'Element\\Plugin\\GetList'
         }
     });
     TP.combo.Plugin.superclass.constructor.call(this,config);

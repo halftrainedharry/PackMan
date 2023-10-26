@@ -3,7 +3,7 @@ TP.grid.Directories = function(config) {
     config = config || {};
     Ext.applyIf(config,{
         id: 'tp-grid-directories'
-        ,url: TP.config.connector_url
+        ,url: MODx.config.connector_url
         ,baseParams: {
             action: 'directory/getList'
         }

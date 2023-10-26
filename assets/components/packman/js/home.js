@@ -44,7 +44,7 @@ TP.page.Home = function(config) {
         },{
             text: _('packman.export')
             ,id: 'tp-btn-export'
-            ,process: 'build'
+            ,process: 'PackMan\\Processors\\Build'
             ,method: 'remote'
             ,keys: [{
                 key: 's'
@@ -56,18 +56,18 @@ TP.page.Home = function(config) {
             xtype: 'tp-panel-home'
             ,renderTo: 'tp-panel-home-div'
         }]
-    }); 
+    });
     TP.page.Home.superclass.constructor.call(this,config);
 };
 Ext.extend(TP.page.Home,MODx.Component,{
     windows: {}
     ,saveProfile: function(btn,e) {
         var data = this.prepareProfile();
-        
+
         MODx.Ajax.request({
-            url: TP.config.connector_url
+            url: MODx.config.connector_url
             ,params: {
-                action: 'profile/update'
+                action: 'PackMan\\Processors\\Profile\\Update'
                 ,id: TP.profileLoaded
                 ,data: data
             }
@@ -80,11 +80,11 @@ Ext.extend(TP.page.Home,MODx.Component,{
     }
     ,removeProfile: function(btn,e) {
         MODx.msg.confirm({
-            url: TP.config.connector_url
+            url: MODx.config.connector_url
             ,title: _('packman.profile_remove')
             ,text: _('packman.profile_remove_confirm')
             ,params: {
-                action: 'profile/remove'
+                action: 'PackMan\\Processors\\Profile\\Remove'
                 ,id: TP.profileLoaded
             }
             ,listeners: {
@@ -167,9 +167,9 @@ Ext.extend(TP.page.Home,MODx.Component,{
     ,loadProfile: function(v) {
         this.resetProfile();
         MODx.Ajax.request({
-            url: TP.config.connector_url
+            url: MODx.config.connector_url
             ,params: {
-                action: 'profile/get'
+                action: 'PackMan\\Processors\\Profile\\Get'
                 ,id: v
             }
             ,listeners: {
@@ -233,9 +233,9 @@ TP.combo.Profile = function(config) {
         ,allowBlank: true
         ,listWidth: 300
         ,emptyText: _('packman.profile_select')
-        ,url: TP.config.connector_url
+        ,url: MODx.config.connector_url
         ,baseParams: {
-            action: 'profile/getList'
+            action: 'PackMan\\Processors\\Profile\\GetList'
         }
     });
     TP.combo.Profile.superclass.constructor.call(this,config);
@@ -264,9 +264,9 @@ TP.window.CreateProfile = function(config) {
     Ext.applyIf(config,{
         title: _('packman.profile_create')
         ,frame: true
-        ,url: TP.config.connector_url
+        ,url: MODx.config.connector_url
         ,baseParams: {
-            action: 'profile/create'
+            action: 'PackMan\\Processors\\Profile\\Create'
         }
         ,id: 'tp-window-profile-create'
         ,fields: [{
