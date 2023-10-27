@@ -112,9 +112,9 @@ TP.combo.Package = function(config) {
         ,editable: false
         ,allowBlank: false
         ,listWidth: 300
-        ,url: MODx.config.connector_url ? MODx.config.connector_url : MODx.config.connectors_url+'workspace/packages.php'
+        ,url: MODx.config.connector_url
         ,baseParams: {
-            action: MODx.config.connector_url ? 'workspace/packages/getList' : 'getList'
+            action: 'MODX\\Revolution\\Processors\\Workspace\\Packages\\GetList'
         }
     });
     TP.combo.Package.superclass.constructor.call(this,config);

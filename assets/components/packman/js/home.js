@@ -98,7 +98,6 @@ Ext.extend(TP.page.Home,MODx.Component,{
             }
         });
     }
-
     ,resetProfile: function(rc) {
         rc = rc || false;
         Ext.getCmp('tp-panel-home').getForm().reset();
@@ -119,8 +118,6 @@ Ext.extend(TP.page.Home,MODx.Component,{
             Ext.getCmp('tp-combo-profile').reset();
         }
     }
-
-
     ,prepareProfile: function() {
         var vs = {};
         vs.info = Ext.getCmp('tp-panel-home').getForm().getValues();
@@ -157,14 +154,12 @@ Ext.extend(TP.page.Home,MODx.Component,{
         this.windows.createProfile.setValues(r);
         this.windows.createProfile.show(cb.el.dom);
     }
-
     ,switchProfile: function(id,name) {
         Ext.getCmp('tp-home-header').update('<h2>'+_('packman')+' - '+_('profile')+': '+name+'</h2>');
         TP.profileLoaded = id;
         var b = Ext.getCmp('tp-menu-profile-options');
         if (b) { b.show(); }
     }
-
     ,loadProfile: function(v) {
         this.resetProfile();
         MODx.Ajax.request({
@@ -280,7 +275,7 @@ TP.window.CreateProfile = function(config) {
             ,description: _('packman.profile_name_desc')
             ,name: 'name'
             ,id: 'tp-'+this.ident+'-name'
-            ,width: 300
+            ,anchor: '100%'
             ,allowBlank: false
         },{
             xtype: 'textarea'
@@ -288,7 +283,7 @@ TP.window.CreateProfile = function(config) {
             ,description: _('packman.profile_description_desc')
             ,name: 'description'
             ,id: 'tp-'+this.ident+'-description'
-            ,width: 300
+            ,anchor: '100%'
         }]
     });
     TP.window.CreateProfile.superclass.constructor.call(this,config);

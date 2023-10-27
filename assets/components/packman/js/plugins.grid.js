@@ -110,13 +110,13 @@ TP.combo.Plugin = function(config) {
         ,valueField: 'id'
         ,fields: ['id','name']
         ,forceSelection: true
-        ,typeAhead: false
-        ,editable: false
+        ,typeAhead: true
+        ,editable: true
         ,allowBlank: false
         ,listWidth: 300
         ,url: MODx.config.connector_url
         ,baseParams: {
-            action: 'MODX\\Revolution\\Processors\\Element\\Plugin\\GetList'
+            action: 'PackMan\\Processors\\Element\\Plugin\\GetList'
         }
     });
     TP.combo.Plugin.superclass.constructor.call(this,config);
