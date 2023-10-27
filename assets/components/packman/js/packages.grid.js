@@ -73,6 +73,7 @@ TP.window.AddPackage = function(config) {
             ,hiddenName: 'package'
             ,id: 'tp-'+this.ident+'-package'
             ,allowBlank: false
+            ,anchor: '100%'
             ,pageSize: 20
         }]
     });

@@ -25,8 +25,19 @@ namespace PackMan\Processors;
 
 use MODX\Revolution\Processors\Processor;
 use MODX\Revolution\Transport\modPackageBuilder;
-use xPDO\Transport\xPDOTransport;
+use MODX\Revolution\Transport\modTransportPackage;
 use MODX\Revolution\modX;
+use MODX\Revolution\modTemplate;
+use MODX\Revolution\modTemplateVar;
+use MODX\Revolution\modTemplateVarTemplate;
+use MODX\Revolution\modChunk;
+use MODX\Revolution\modSnippet;
+use MODX\Revolution\modPlugin;
+use MODX\Revolution\modCategory;
+use xPDO\Transport\xPDOTransport;
+use xPDO\Transport\xPDOTransportVehicle;
+use PackMan\PackMan;
+use Psr\Container\ContainerExceptionInterface;
 
 /**
  * Builds the package and exports it.
@@ -42,8 +53,8 @@ class Build extends Processor
         if (!empty($_REQUEST['download'])) {
             $file = $_REQUEST['download'];
             sleep(.5); /* to make sure not to go too fast */
-            $d = $this->modx->getOption('core_path').'packages/'.$_REQUEST['download'];
-            $f = $d.'.transport.zip';
+            $d = $this->modx->getOption('core_path') . 'packages/' . $_REQUEST['download'];
+            $f = $d . '.transport.zip';
 
             if (!is_file($f)) return '';
 
@@ -55,19 +66,31 @@ class Build extends Processor
 
             /* remove package files now that we are through */
             @unlink($f);
-            $this->modx->cacheManager->deleteTree($d.'/',true,false,array());
+            $this->modx->cacheManager->deleteTree($d . '/', true, false, []);
 
             return $o;
         }
 
+        // Get service
+        $packman = null;
+        try {
+            if ($this->modx->services->has('packman')) {
+                $packman = $this->modx->services->get('packman');
+            }
+        } catch (ContainerExceptionInterface $e) {
+        }
+        if (!($packman instanceof PackMan)){
+            return $this->failure('Service class couldn\'t be loaded!');
+        }
+
         /* verify form */
-        if (empty($_POST['category'])) $this->modx->error->addField('category',$this->modx->lexicon('packman.category_err_ns'));
-        if (empty($_POST['version'])) $this->modx->error->addField('version',$this->modx->lexicon('packman.version_err_nf'));
-        if (empty($_POST['release'])) $this->modx->error->addField('release',$this->modx->lexicon('packman.release_err_nf'));
+        if (empty($_POST['category'])) $this->addFieldError('category', $this->modx->lexicon('packman.category_err_ns'));
+        if (empty($_POST['version'])) $this->addFieldError('version', $this->modx->lexicon('packman.version_err_nf'));
+        if (empty($_POST['release'])) $this->addFieldError('release', $this->modx->lexicon('packman.release_err_nf'));
 
         /* if any errors, return and dont proceed */
-        if ($this->modx->error->hasError()) {
-            return $this->modx->error->failure();
+        if ($this->hasErrors()) {
+            return $this->failure();
         }
 
         /* get version, release, files */
@@ -76,216 +99,216 @@ class Build extends Processor
 
         /* format package name */
         $name_lower = strtolower($_POST['category']);
-        $name_lower = str_replace(array(' ','-','.','*','!','@','#','$','%','^','&','_'),'',$name_lower);
+        $name_lower = str_replace([' ','-','.','*','!','@','#','$','%','^','&','_'], '', $name_lower);
 
         /* define file paths and string replacements */
-        $directories = array();
-        $cachePath = $this->modx->getOption('core_path').'cache/';
-        $pathLookups = array(
-            'sources' => array(
+        $directories = [];
+        $cachePath = $this->modx->getOption('core_path') . 'cache/';
+        $pathLookups = [
+            'sources' => [
                 '{base_path}',
                 '{core_path}',
-                '{assets_path}',
-            ),
-            'targets' => array(
-                $this->modx->getOption('base_path',null,MODX_BASE_PATH),
-                $this->modx->getOption('core_path',null,MODX_CORE_PATH),
-                $this->modx->getOption('assets_path',null,MODX_ASSETS_PATH),
-            )
-        );
+                '{assets_path}'
+            ],
+            'targets' => [
+                $this->modx->getOption('base_path', null, MODX_BASE_PATH),
+                $this->modx->getOption('core_path', null, MODX_CORE_PATH),
+                $this->modx->getOption('assets_path', null, MODX_ASSETS_PATH)
+            ]
+        ];
 
-        // $this->modx->loadClass('transport.modPackageBuilder','',false, true);
+        // $this->modx->loadClass('transport.modPackageBuilder', '', false, true);
         $builder = new modPackageBuilder($this->modx);
-        $builder->createPackage($name_lower,$version,$release);
-        $builder->registerNamespace($name_lower,false,true,'{core_path}components/'.$name_lower.'/');
+        $builder->createPackage($name_lower, $version, $release);
+        $builder->registerNamespace($name_lower, false, true, '{core_path}components/' . $name_lower . '/');
 
         /* create category */
-        $category= $this->modx->newObject('modCategory');
-        $category->set('id',1);
-        $category->set('category',$_POST['category']);
+        $category= $this->modx->newObject(modCategory::class);
+        $category->set('id', 1);
+        $category->set('category', $_POST['category']);
 
         /* add Chunks */
         $chunkList = $this->modx->fromJSON($_POST['chunks']);
         if (!empty($chunkList)) {
-            $chunks = array();
+            $chunks = [];
             foreach ($chunkList as $chunkData) {
                 if (empty($chunkData['id'])) continue;
-                $chunk = $this->modx->getObject('modChunk',$chunkData['id']);
+                $chunk = $this->modx->getObject(modChunk::class, $chunkData['id']);
                 if (empty($chunk)) continue;
 
                 $chunks[] = $chunk;
             }
             if (empty($chunks)) {
-                return $this->modx->error->failure('Error packaging chunks!');
+                return $this->failure('Error packaging chunks!');
             }
-            $category->addMany($chunks,'Chunks');
-            $this->modx->log(modX::LOG_LEVEL_INFO,'Packaged in '.count($chunks).' chunks...');
+            $category->addMany($chunks, 'Chunks');
+            $this->modx->log(modX::LOG_LEVEL_INFO, 'Packaged in ' . count($chunks) . ' chunks...');
         }
 
         /* add snippets */
         $snippetList = $this->modx->fromJSON($_POST['snippets']);
         if (!empty($snippetList)) {
-            $snippets = array();
+            $snippets = [];
             foreach ($snippetList as $snippetData) {
                 if (empty($snippetData['id'])) continue;
-                $snippet = $this->modx->getObject('modSnippet',$snippetData['id']);
+                $snippet = $this->modx->getObject(modSnippet::class, $snippetData['id']);
                 if (empty($snippet)) continue;
 
                 $snippets[] = $snippet;
 
                 /* package in assets_path if it exists */
                 if (!empty($snippetData['assets_path'])) {
-                    $files = str_replace($pathLookups['sources'],$pathLookups['targets'],$snippetData['assets_path']);
+                    $files = str_replace($pathLookups['sources'], $pathLookups['targets'], $snippetData['assets_path']);
                     $l = strlen($files);
-                    if (substr($files,$l-1,$l) != '/') $files .= '/';
+                    if (substr($files, $l-1, $l) != '/') $files .= '/';
                     /* verify files exist */
                     if (file_exists($files) && is_dir($files)) {
-                        $directories[] = array(
+                        $directories[] = [
                             'source' => $files,
-                            'target' => "return MODX_ASSETS_PATH . 'components/';",
-                        );
+                            'target' => "return MODX_ASSETS_PATH . 'components/';"
+                        ];
                     }
                 }
                 /* package in core_path if it exists */
                 if (!empty($snippetData['core_path'])) {
-                    $files = str_replace($pathLookups['sources'],$pathLookups['targets'],$snippetData['core_path']);
+                    $files = str_replace($pathLookups['sources'], $pathLookups['targets'], $snippetData['core_path']);
                     $l = strlen($files);
-                    if (substr($files,$l-1,$l) != '/') $files .= '/';
+                    if (substr($files, $l-1, $l) != '/') $files .= '/';
                     /* verify files exist */
                     if (file_exists($files) && is_dir($files)) {
-                        $directories[] = array(
+                        $directories[] = [
                             'source' => $files,
-                            'target' => "return MODX_CORE_PATH . 'components/';",
-                        );
+                            'target' => "return MODX_CORE_PATH . 'components/';"
+                        ];
                     }
                 }
             }
             if (empty($snippets)) {
-                return $this->modx->error->failure('Error packaging Snippets!');
+                return $this->failure('Error packaging Snippets!');
             }
-            $category->addMany($snippets,'Snippets');
-            $this->modx->log(modX::LOG_LEVEL_INFO,'Packaged in '.count($snippets).' Snippets...');
+            $category->addMany($snippets, 'Snippets');
+            $this->modx->log(modX::LOG_LEVEL_INFO, 'Packaged in ' . count($snippets) . ' Snippets...');
         }
 
         /* add Plugins */
         $pluginList = $this->modx->fromJSON($_POST['plugins']);
         if (!empty($pluginList)) {
-            $plugins = array();
+            $plugins = [];
             foreach ($pluginList as $pluginData) {
                 if (empty($pluginData['id'])) continue;
-                $plugin = $this->modx->getObject('modPlugin',$pluginData['id']);
+                $plugin = $this->modx->getObject(modPlugin::class, $pluginData['id']);
                 if (empty($plugin)) continue;
 
                 $pluginEvents = $plugin->getMany('PluginEvents');
                 $plugin->addMany($pluginEvents);
 
-                $attr = array (
+                $attr = [
                     xPDOTransport::PRESERVE_KEYS => false,
                     xPDOTransport::UPDATE_OBJECT => true,
                     xPDOTransport::UNIQUE_KEY => 'name',
                     xPDOTransport::RELATED_OBJECTS => true,
-                    xPDOTransport::RELATED_OBJECT_ATTRIBUTES => array (
-                        'PluginEvents' => array(
+                    xPDOTransport::RELATED_OBJECT_ATTRIBUTES => [
+                        'PluginEvents' => [
                             xPDOTransport::PRESERVE_KEYS => true,
                             xPDOTransport::UPDATE_OBJECT => false,
-                            xPDOTransport::UNIQUE_KEY => array('pluginid','event'),
-                        ),
-                    ),
-                );
-                $vehicle = $builder->createVehicle($plugin,$attr);
+                            xPDOTransport::UNIQUE_KEY => ['pluginid', 'event']
+                        ]
+                    ]
+                ];
+                $vehicle = $builder->createVehicle($plugin, $attr);
                 $builder->putVehicle($vehicle);
 
                 $plugins[] = $plugin;
             }
             if (empty($plugins)) {
-                return $this->modx->error->failure('Error packaging plugins!');
+                return $this->failure('Error packaging plugins!');
             }
-            //$category->addMany($plugins,'Plugins');
-            $this->modx->log(modX::LOG_LEVEL_INFO,'Packaged in '.count($plugins).' plugins...');
+            //$category->addMany($plugins, 'Plugins');
+            $this->modx->log(modX::LOG_LEVEL_INFO, 'Packaged in ' . count($plugins) . ' plugins...');
         }
 
         /* add Templates */
-        $tvs = array();
-        $tvMap = array();
+        $tvs = [];
+        $tvMap = [];
         $templateList = $this->modx->fromJSON($_POST['templates']);
         if (!empty($templateList)) {
-            $templates = array();
+            $templates = [];
             foreach ($templateList as $templateData) {
                 if (empty($templateData['id'])) continue;
-                $template = $this->modx->getObject('modTemplate',$templateData['id']);
+                $template = $this->modx->getObject(modTemplate::class, $templateData['id']);
                 if (empty($template)) continue;
 
                 $templates[] = $template;
                 /* add in directory for Template */
                 if (!empty($templateData['directory'])) {
-                    $files = str_replace($pathLookups['sources'],$pathLookups['targets'],$templateData['directory']);
+                    $files = str_replace($pathLookups['sources'], $pathLookups['targets'], $templateData['directory']);
                     $l = strlen($files);
-                    if (substr($files,$l-1,$l) != '/') $files .= '/';
+                    if (substr($files, $l-1, $l) != '/') $files .= '/';
                     /* verify files exist */
                     if (file_exists($files) && is_dir($files)) {
-                        $directories[] = array(
+                        $directories[] = [
                             'source' => $files,
-                            'target' => "return MODX_ASSETS_PATH . 'templates/';",
-                        );
+                            'target' => "return MODX_ASSETS_PATH . 'templates/';"
+                        ];
                     }
                 }
 
                 /* collect TVs assigned to Template */
-                $c = $this->modx->newQuery('modTemplateVar');
-                $c->innerJoin('modTemplateVarTemplate','TemplateVarTemplates');
-                $c->where(array(
-                    'TemplateVarTemplates.templateid' => $template->get('id'),
-                ));
-                $tvList = $this->modx->getCollection('modTemplateVar',$c);
+                $c = $this->modx->newQuery(modTemplateVar::class);
+                $c->innerJoin(modTemplateVarTemplate::class, 'TemplateVarTemplates');
+                $c->where([
+                    'TemplateVarTemplates.templateid' => $template->get('id')
+                ]);
+                $tvList = $this->modx->getCollection(modTemplateVar::class, $c);
                 foreach ($tvList as $tv) {
                     if (!isset($tvMap[$tv->get('name')])) {
                         $tvs[] = $tv; /* only add TV once */
-                        $tvMap[$tv->get('name')] = array();
+                        $tvMap[$tv->get('name')] = [];
                     }
-                    array_push($tvMap[$tv->get('name')],$template->get('templatename'));
+                    array_push($tvMap[$tv->get('name')], $template->get('templatename'));
                     $tvMap[$tv->get('name')] = array_unique($tvMap[$tv->get('name')]);
                 }
             }
             if (empty($templates)) {
-                return $this->modx->error->failure('Error packaging Templates!');
+                return $this->failure('Error packaging Templates!');
             }
-            $category->addMany($templates,'Templates');
-            $this->modx->log(modX::LOG_LEVEL_INFO,'Packaged in '.count($templates).' Templates...');
+            $category->addMany($templates, 'Templates');
+            $this->modx->log(modX::LOG_LEVEL_INFO, 'Packaged in ' . count($templates) . ' Templates...');
         }
 
         /* add in TVs */
         $category->addMany($tvs);
 
         /* package in category vehicle */
-        $attr = array(
+        $attr = [
             xPDOTransport::UNIQUE_KEY => 'category',
             xPDOTransport::PRESERVE_KEYS => false,
             xPDOTransport::UPDATE_OBJECT => true,
             xPDOTransport::RELATED_OBJECTS => true,
-            xPDOTransport::RELATED_OBJECT_ATTRIBUTES => array (
-                'Chunks' => array (
+            xPDOTransport::RELATED_OBJECT_ATTRIBUTES => [
+                'Chunks' => [
                     xPDOTransport::PRESERVE_KEYS => false,
                     xPDOTransport::UPDATE_OBJECT => true,
-                    xPDOTransport::UNIQUE_KEY => 'name',
-                ),
-                'TemplateVars' => array (
+                    xPDOTransport::UNIQUE_KEY => 'name'
+                ],
+                'TemplateVars' => [
                     xPDOTransport::PRESERVE_KEYS => false,
                     xPDOTransport::UPDATE_OBJECT => true,
-                    xPDOTransport::UNIQUE_KEY => 'name',
-                ),
-                'Templates' => array (
+                    xPDOTransport::UNIQUE_KEY => 'name'
+                ],
+                'Templates' => [
                     xPDOTransport::PRESERVE_KEYS => false,
                     xPDOTransport::UPDATE_OBJECT => true,
-                    xPDOTransport::UNIQUE_KEY => 'templatename',
-                ),
-                'Snippets' => array (
+                    xPDOTransport::UNIQUE_KEY => 'templatename'
+                ],
+                'Snippets' => [
                     xPDOTransport::PRESERVE_KEYS => false,
                     xPDOTransport::UPDATE_OBJECT => true,
-                    xPDOTransport::UNIQUE_KEY => 'name',
-                ),
-            ),
-        );
-        $vehicle = $builder->createVehicle($category,$attr);
+                    xPDOTransport::UNIQUE_KEY => 'name'
+                ]
+            ]
+        ];
+        $vehicle = $builder->createVehicle($category, $attr);
 
         /* add user-specified directories */
         $directoryList = $this->modx->fromJSON($_POST['directories']);
@@ -293,49 +316,49 @@ class Build extends Processor
             foreach ($directoryList as $directoryData) {
                 if (empty($directoryData['source']) || empty($directoryData['target'])) continue;
 
-                $source = str_replace($pathLookups['sources'],$pathLookups['targets'],$directoryData['source']);
+                $source = str_replace($pathLookups['sources'], $pathLookups['targets'], $directoryData['source']);
                 if (empty($source)) continue;
                 $l = strlen($source);
-                if (substr($source,$l-1,$l) != '/') $source .= '/';
+                if (substr($source, $l-1, $l) != '/') $source .= '/';
                 if (!file_exists($source) || !is_dir($source)) continue;
 
-                $target = str_replace($pathLookups['sources'],array(
+                $target = str_replace($pathLookups['sources'], [
                     '".MODX_BASE_PATH."',
                     '".MODX_CORE_PATH."',
-                    '".MODX_ASSETS_PATH."',
-                ),$directoryData['target']);
+                    '".MODX_ASSETS_PATH."'
+                ], $directoryData['target']);
                 if (empty($target)) continue;
                 $l = strlen($target);
-                if (substr($target,$l-1,$l) != '/') $target .= '/';
+                if (substr($target, $l-1, $l) != '/') $target .= '/';
 
-                $target = 'return "'.$target.'";';
+                $target = 'return "' . $target . '";';
 
-                $directories[] = array(
+                $directories[] = [
                     'source' => $source,
-                    'target' => $target,
-                );
+                    'target' => $target
+                ];
             }
         }
 
         /* add directories to category vehicle */
         if (!empty($directories)) {
             foreach ($directories as $directory) {
-                $vehicle->resolve('file',$directory);
+                $vehicle->resolve('file', $directory);
             }
-            $this->modx->log(modX::LOG_LEVEL_INFO,'Added '.count($directories).' directories to category...');
+            $this->modx->log(modX::LOG_LEVEL_INFO, 'Added ' . count($directories) . ' directories to category...');
         }
 
         /* create dynamic TemplateVarTemplate resolver */
         if (!empty($tvMap)) {
-            $tvp = var_export($tvMap,true);
-            $resolverCachePath = $cachePath.'packman/resolve.tvt.php';
-            $resolver = file_get_contents($this->modx->tp->config['includesPath'].'resolve.tvt.php');
-            $resolver = str_replace(array('{tvs}'),array($tvp),$resolver);
+            $tvp = var_export($tvMap, true);
+            $resolverCachePath = $cachePath . 'packman/resolve.tvt.php';
+            $resolver = file_get_contents($packman->config['includesPath'] . 'resolve.tvt.php');
+            $resolver = str_replace(['{tvs}'], [$tvp], $resolver);
 
-            $this->modx->cacheManager->writeFile($resolverCachePath,$resolver);
-            $vehicle->resolve('php',array(
-                'source' => $resolverCachePath,
-            ));
+            $this->modx->cacheManager->writeFile($resolverCachePath, $resolver);
+            $vehicle->resolve('php', [
+                'source' => $resolverCachePath
+            ]);
         }
 
         /* add category vehicle to build */
@@ -344,72 +367,70 @@ class Build extends Processor
         /* add in packages */
         $packageList = $this->modx->fromJSON($_POST['packages']);
         if (!empty($packageList)) {
-            $this->modx->addPackage('modx.transport',$this->modx->getOption('core_path').'model/');
-
-            $packageDir = $this->modx->getOption('core_path',null,MODX_CORE_PATH).'packages/';
-            $spAttr = array('vehicle_class' => 'xPDOTransportVehicle');
-            $spReplaces = array(
+            $packageDir = $this->modx->getOption('core_path', null, MODX_CORE_PATH) . 'packages/';
+            $spAttr = ['vehicle_class' => xPDOTransportVehicle::class];
+            $spReplaces = [
                 '{version}',
                 '{version_major}',
-                '{name}',
-            );
-            $resolverReplaces = array(
+                '{name}'
+            ];
+            $resolverReplaces = [
                 '{signature}',
                 '{provider}',
                 '{attributes}',
-                '{metadata}',
-            );
+                '{metadata}'
+            ];
 
             foreach ($packageList as $packageData) {
-                $file = $packageDir.$packageData['signature'].'.transport.zip';
+                $file = $packageDir . $packageData['signature'] . '.transport.zip';
                 if (!file_exists($file)) continue;
 
-                $package = $this->modx->getObject('transport.modTransportPackage',array('signature' => $packageData['signature']));
+                $package = $this->modx->getObject(modTransportPackage::class, ['signature' => $packageData['signature']]);
                 if (!$package) {
-                    $this->modx->log(modX::LOG_LEVEL_ERROR,'[PackMan] Package could not be found with signature: '.$packageData['signature']);
+                    $this->modx->log(modX::LOG_LEVEL_ERROR, '[PackMan] Package could not be found with signature: ' . $packageData['signature']);
                     continue;
                 }
 
                 /* create package as subpackage */
-                $vehicle = $builder->createVehicle(array(
+                $vehicle = $builder->createVehicle([
                     'source' => $file,
-                    'target' => "return MODX_CORE_PATH . 'packages/';",
-                ),$spAttr);
+                    'target' => "return MODX_CORE_PATH . 'packages/';"
+                ], $spAttr);
 
                 /* get signature values */
-                $sig = explode('-',$packageData['signature']);
-                $vsig = explode('.',$sig[1]);
+                $sig = explode('-', $packageData['signature']);
+                $vsig = explode('.', $sig[1]);
 
                 /* create custom package validator to resolve if the package on the client server is newer than this version */
-                $cacheKey = 'packman/validators/'.$packageData['signature'].'.php';
-                $validator = file_get_contents($this->modx->tp->config['includesPath'].'validate.subpackage.php');
-                $validator = str_replace($spReplaces,array(
-                    $sig[1].(!empty($sig[2]) ? '-'.$sig[2] : ''),
+                $cacheKey = 'packman/validators/' . $packageData['signature'] . '.php';
+                $validator = file_get_contents($packman->config['includesPath'] . 'validate.subpackage.php');
+                $validator = str_replace($spReplaces, [
+                    $sig[1] . (!empty($sig[2]) ? '-' . $sig[2] : ''),
                     $vsig[0],
-                    $sig[0],
-                ),$validator);
-                $this->modx->cacheManager->writeFile($cachePath.$cacheKey,$validator);
+                    $sig[0]
+                ], $validator);
+                $this->modx->cacheManager->writeFile($cachePath . $cacheKey, $validator);
 
                 /* add validator to vehicle */
-                $vehicle->validate('php',array(
-                    'source' => $cachePath.$cacheKey,
-                ));
+                $vehicle->validate('php', [
+                    'source' => $cachePath . $cacheKey
+                ]);
 
                 /* add resolver to subpackage to add to packages grid */
-                $cacheKey = 'packman/resolvers/'.$packageData['signature'].'.php';
-                $resolver = file_get_contents($this->modx->tp->config['includesPath'].'resolve.subpackage.php');
-                $resolver = str_replace($resolverReplaces,array(
+                $cacheKey = 'packman/resolvers/' . $packageData['signature'] . '.php';
+                $resolver = file_get_contents($packman->config['includesPath'] . 'resolve.subpackage.php');
+                $resolver = str_replace($resolverReplaces, [
                     $packageData['signature'],
                     $package->get('provider'),
-                    str_replace("'","\'",$this->modx->toJSON($package->get('attributes'))),
-                    str_replace("'","\'",$this->modx->toJSON($package->get('metadata'))),
-                ),$resolver);
-                $this->modx->cacheManager->writeFile($cachePath.$cacheKey,$resolver);
+                    str_replace("'", "\'", $this->modx->toJSON($package->get('attributes'))),
+                    str_replace("'", "\'", $this->modx->toJSON($package->get('metadata'))),
+                ], $resolver);
+                $this->modx->cacheManager->writeFile($cachePath . $cacheKey, $resolver);
 
                 /* add resolver to vehicle */
-                $vehicle->resolve('php',array(
-                    'source' => $cachePath.$cacheKey,
-                ));
+                $vehicle->resolve('php', [
+                    'source' => $cachePath . $cacheKey
+                ]);
 
                 /* add subpackage to build */
                 $builder->putVehicle($vehicle);
@@ -417,7 +438,7 @@ class Build extends Processor
         }
 
         /* now pack in the license file, readme and setup options */
-        $packageAttributes = array();
+        $packageAttributes = [];
         if (isset($_FILES['license']) && !empty($_FILES['license']) && $_FILES['license']['error'] == UPLOAD_ERR_OK) {
             $packageAttributes['license'] = file_get_contents($_FILES['license']['tmp_name']);
         }
@@ -433,15 +454,15 @@ class Build extends Processor
         $builder->pack();
 
         /* remove any cached files */
-        $this->modx->cacheManager->deleteTree($cachePath.'packman/',array(
+        $this->modx->cacheManager->deleteTree($cachePath . 'packman/', [
             'deleteTop' => true,
             'skipDirs' => false,
-            'extensions' => array('.php'),
-        ));
+            'extensions' => ['.php']
+        ]);
 
         /* output name to browser */
-        $signature = $name_lower.'-'.$version.'-'.$release;
-        return $this->modx->error->success($signature);
+        $signature = $name_lower . '-' . $version . '-' . $release;
+        return $this->success($signature);
     }
 
     public function getLanguageTopics()

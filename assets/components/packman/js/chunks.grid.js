@@ -114,7 +114,7 @@ TP.combo.Chunk = function(config) {
         ,listWidth: 300
         ,url: MODx.config.connector_url
         ,baseParams: {
-            action: 'Element\\Chunk\\GetList'
+            action: 'MODX\\Revolution\\Processors\\Element\\Chunk\\GetList'
         }
     });
     TP.combo.Chunk.superclass.constructor.call(this,config);

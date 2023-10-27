@@ -25,78 +25,78 @@ class Get extends Processor
 
         /* templates */
         if (!empty($data['templates'])) {
-            $tpls = array();
+            $tpls = [];
             foreach ($data['templates'] as $tpl) {
-                $tpls[] = array(
+                $tpls[] = [
                     $tpl['id'],
                     $tpl['name'],
-                    $tpl['directory'],
-                );
+                    $tpl['directory']
+                ];
             }
-            $profile->set('templates','(' . $this->modx->toJSON($tpls) . ')');
+            $profile->set('templates', '(' . $this->modx->toJSON($tpls) . ')');
         }
 
         /* chunks */
         if (!empty($data['chunks'])) {
-            $tpls = array();
+            $tpls = [];
             foreach ($data['chunks'] as $tpl) {
-                $tpls[] = array(
+                $tpls[] = [
                     $tpl['id'],
-                    $tpl['name'],
-                );
+                    $tpl['name']
+                ];
             }
-            $profile->set('chunks','(' . $this->modx->toJSON($tpls) . ')');
+            $profile->set('chunks', '(' . $this->modx->toJSON($tpls) . ')');
         }
 
         /* snippets */
         if (!empty($data['snippets'])) {
-            $tpls = array();
+            $tpls = [];
             foreach ($data['snippets'] as $tpl) {
-                $tpls[] = array(
+                $tpls[] = [
                     $tpl['id'],
                     $tpl['name'],
                     $tpl['assets_path'],
-                    $tpl['core_path'],
-                );
+                    $tpl['core_path']
+                ];
             }
-            $profile->set('snippets','(' . $this->modx->toJSON($tpls) . ')');
+            $profile->set('snippets', '(' . $this->modx->toJSON($tpls) . ')');
         }
 
 
         /* packages */
         if (!empty($data['packages'])) {
-            $tpls = array();
+            $tpls = [];
             foreach ($data['packages'] as $tpl) {
-                $tpls[] = array(
-                    $tpl['signature'],
-                );
+                $tpls[] = [
+                    $tpl['signature']
+                ];
             }
-            $profile->set('packages','(' . $this->modx->toJSON($tpls) . ')');
+            $profile->set('packages', '(' . $this->modx->toJSON($tpls) . ')');
         }
 
 
         /* plugins */
         if (!empty($data['plugins'])) {
-            $tpls = array();
+            $tpls = [];
             foreach ($data['plugins'] as $tpl) {
-                $tpls[] = array(
+                $tpls[] = [
                     $tpl['id'],
-                    $tpl['name'],
-                );
+                    $tpl['name']
+                ];
             }
-            $profile->set('plugins','(' . $this->modx->toJSON($tpls) . ')');
+            $profile->set('plugins', '(' . $this->modx->toJSON($tpls) . ')');
         }
 
         /* directories */
         if (!empty($data['directories'])) {
-            $tpls = array();
+            $tpls = [];
             foreach ($data['directories'] as $tpl) {
-                $tpls[] = array(
+                $tpls[] = [
                     $tpl['source'],
-                    $tpl['target'],
-                );
+                    $tpl['target']
+                ];
             }
-            $profile->set('directories','(' . $this->modx->toJSON($tpls) . ')');
+            $profile->set('directories', '(' . $this->modx->toJSON($tpls) . ')');
         }
 
         return $this->success('', $profile);

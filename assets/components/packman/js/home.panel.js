@@ -61,7 +61,7 @@ TP.panel.Home = function(config) {
                     ,name: 'version'
                     ,fieldLabel: _('packman.version')
                     ,description: _('packman.version_desc')
-                    ,value: '1.0'
+                    ,value: '1.0.0'
                 },{
                     xtype: 'textfield'
                     ,name: 'release'

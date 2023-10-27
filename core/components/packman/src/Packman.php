@@ -42,7 +42,7 @@ class PackMan {
      * @param array $config (optional) Configuration properties.
      * @return packman
      */
-    function __construct(modX &$modx,array $config = []) {
+    function __construct(modX &$modx, array $config = []) {
         $this->modx =& $modx;
 
         $corePath = $modx->getOption('packman.core_path', null, $modx->getOption('core_path') . 'components/packman/');

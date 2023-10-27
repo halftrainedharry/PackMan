@@ -154,7 +154,7 @@ TP.combo.Snippet = function(config) {
         ,listWidth: 300
         ,url: MODx.config.connector_url
         ,baseParams: {
-            action: 'Element\\Snippet\\GetList'
+            action: 'MODX\\Revolution\\Processors\\Element\\Snippet\\GetList'
         }
     });
     TP.combo.Snippet.superclass.constructor.call(this,config);

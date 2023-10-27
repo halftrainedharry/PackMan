@@ -41,6 +41,7 @@ TP.page.Home = function(config) {
         },{
             xtype: 'tp-combo-profile'
             ,id: 'tp-combo-profile'
+            ,width: 200
         },{
             text: _('packman.export')
             ,id: 'tp-btn-export'

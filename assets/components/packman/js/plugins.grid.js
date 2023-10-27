@@ -116,7 +116,7 @@ TP.combo.Plugin = function(config) {
         ,listWidth: 300
         ,url: MODx.config.connector_url
         ,baseParams: {
-            action: 'Element\\Plugin\\GetList'
+            action: 'MODX\\Revolution\\Processors\\Element\\Plugin\\GetList'
         }
     });
     TP.combo.Plugin.superclass.constructor.call(this,config);

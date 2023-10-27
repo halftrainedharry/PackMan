@@ -80,7 +80,7 @@ TP.window.AddDirectory = function(config) {
             ,description: _('packman.directory_source_desc')
             ,value: ''
             ,allowBlank: false
-            ,width: 300
+            ,anchor: '100%'
         },{
             xtype: 'textfield'
             ,name: 'target'
@@ -89,7 +89,7 @@ TP.window.AddDirectory = function(config) {
             ,description: _('packman.directory_target_desc')
             ,value: ''
             ,allowBlank: false
-            ,width: 300
+            ,anchor: '100%'
         }]
     });
     TP.window.AddDirectory.superclass.constructor.call(this,config);

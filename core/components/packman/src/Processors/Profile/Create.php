@@ -24,7 +24,7 @@ class Create extends Processor
         $profile->fromArray($this->properties);
 
         $data = $this->modx->fromJSON($_POST['data']);
-        $profile->set('data',$data);
+        $profile->set('data', $data);
 
         if ($profile->save() === false) {
             return $this->failure($this->modx->lexicon('packman.profile_err_save'));

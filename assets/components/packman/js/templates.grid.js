@@ -138,7 +138,7 @@ TP.combo.Template = function(config) {
         ,listWidth: 300
         ,url: MODx.config.connector_url
         ,baseParams: {
-            action: 'Element\\Template\\GetList'
+            action: 'MODX\\Revolution\\Processors\\Element\\Template\\GetList'
         }
     });
     TP.combo.Template.superclass.constructor.call(this,config);
