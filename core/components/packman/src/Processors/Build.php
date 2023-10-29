@@ -117,7 +117,6 @@ class Build extends Processor
             ]
         ];
 
-        // $this->modx->loadClass('transport.modPackageBuilder', '', false, true);
         $builder = new modPackageBuilder($this->modx);
         $builder->createPackage($name_lower, $version, $release);
         $builder->registerNamespace($name_lower, false, true, '{core_path}components/' . $name_lower . '/');
